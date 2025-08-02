@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% load form_tags %}
+
+{% block title %}مدیریت حساب{% endblock %}
+
+{% block content %}
+
+<!-- پیام موفقیت -->
+{% if messages %}
+  <div id="message-box" class="alert alert-success text-center position-fixed top-0 start-50 translate-middle-x mt-3 shadow" style="z-index: 1050; display: none;">
+    {% for message in messages %}
+      {{ message }}
+    {% endfor %}
+  </div>
+{% endif %}
+
+<div class="row">
+  <!-- سایدبار -->
+  <div class="col-md-3 mb-3">
+    <div class="list-group shadow-sm" id="sidebar">
+      <a href="#" class="list-group-item list-group-item-action sidebar-item active" onclick="showSection('edit', this)">ویرایش حساب</a>
+      <a href="#" class="list-group-item list-group-item-action sidebar-item" onclick="showSection('selected', this)">محصولات انتخاب شده</a>
+      <a href="#" class="list-group-item list-group-item-action sidebar-item" onclick="showSection('favorites', this)">علاقه‌مندی‌ها</a>
+      <a href="#" class="list-group-item list-group-item-action sidebar-item" onclick="showSection('cart', this)">سبد خرید</a>
+    </div>
+  </div>
+
+  <!-- محتوا -->
+  <div class="col-md-9">
+    <div class="card shadow-sm">
+      <div class="card-header bg-light fw-bold" id="card-title">ویرایش اطلاعات حساب</div>
+      <div class="card-body" id="card-body">
+
+        <!-- بخش ویرایش -->
+        <div id="section-edit">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            <div class="row">
+              {# نمایش فیلدهای غیر رمز (username، email، phone، birthday، gender) دو تا دو تا #}
+              {% for field in form %}
+                {% if field.name != 'password1' and field.name != 'password2' %}
+                  <div class="col-md-6 mb-3">
+                    {{ field.label_tag }}
+                    {{ field|add_attrs:"class:form-control" }}
+                    {% if field.help_text %}
+                      <small class="form-text text-muted">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                      <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+
+            <!-- دکمه نمایش/مخفی کردن فیلدهای تغییر رمز -->
+            <div class="mb-3">
+              <button type="button" class="btn btn-outline-secondary btn-sm" onclick="togglePasswordFields()">
+                تغییر رمز عبور
+              </button>
+            </div>
+
+            <!-- فیلدهای رمزعبور جدید (مخفی در ابتدا) -->
+            <div id="password-fields" style="display: none;">
+              <div class="row">
+                {% for field in form %}
+                  {% if field.name == 'password1' or field.name == 'password2' %}
+                    <div class="col-md-6 mb-3">
+                      {{ field.label_tag }}
+                      {{ field|add_attrs:"class:form-control" }}
+                      {% if field.help_text %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                      {% endif %}
+                      {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="text-end">
+              <button type="submit" class="btn btn-success">ذخیره تغییرات</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- بخش محصولات انتخاب شده -->
+        <div id="section-selected" style="display: none;">
+          <p class="text-muted">محصولی انتخاب نشده است.</p>
+        </div>
+
+        <!-- بخش علاقه‌مندی‌ها -->
+        <div id="section-favorites" style="display: none;">
+          <p class="text-muted">علاقه‌مندی وجود ندارد.</p>
+        </div>
+
+        <!-- بخش سبد خرید -->
+        <div id="section-cart" style="display: none;">
+          <p class="text-muted">سبد خرید خالی است.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- استایل‌های سفارشی -->
+<style>
+  .sidebar-item {
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+    color: #333;
+    border-right: 4px solid transparent;
+  }
+
+  .sidebar-item:hover {
+    background-color: #e9ecef;
+    border-right: 4px solid #0d6efd;
+    color: #000;
+  }
+
+  .sidebar-item.active {
+    background-color: #dee2e6;
+    font-weight: bold;
+    border-right: 4px solid #0d6efd;
+    color: #000;
+  }
+</style>
+
+<!-- اسکریپت‌ها -->
+<script>
+  // پیام موفقیت
+  document.addEventListener("DOMContentLoaded", function () {
+    const messageBox = document.getElementById('message-box');
+    if (messageBox) {
+      messageBox.style.display = 'block';
+      setTimeout(() => {
+        messageBox.style.display = 'none';
+      }, 4000);
+    }
+  });
+
+  // نمایش بخش‌ها + فعال‌سازی آیتم سایدبار
+  function showSection(section, element) {
+    const sections = ['edit', 'selected', 'favorites', 'cart'];
+    sections.forEach(s => {
+      document.getElementById('section-' + s).style.display = (s === section) ? 'block' : 'none';
+    });
+
+    const titles = {
+      edit: 'ویرایش اطلاعات حساب',
+      selected: 'محصولات انتخاب شده',
+      favorites: 'علاقه‌مندی‌ها',
+      cart: 'سبد خرید'
+    };
+    document.getElementById('card-title').innerText = titles[section];
+
+    // فعال‌سازی آیتم سایدبار
+    document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+    if (element) element.classList.add('active');
+  }
+
+  // نمایش یا مخفی کردن فیلدهای رمز عبور
+  function togglePasswordFields() {
+    const passFields = document.getElementById('password-fields');
+    if (passFields.style.display === 'none') {
+      passFields.style.display = 'block';
+    } else {
+      passFields.style.display = 'none';
+      // اگر فیلدها مخفی شدند، مقدارشان را خالی کن تا خطا نیاد
+      const inputs = passFields.querySelectorAll('input');
+      inputs.forEach(input => input.value = '');
+    }
+  }
+</script>
+
+{% endblock %}

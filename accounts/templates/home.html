@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>خانه</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+    <style>
+        .swiper {
+            padding-bottom: 2rem;
+        }
+
+        .swiper-slide {
+            width: 300px !important;
+        }
+
+        .hero-swiper {
+            height: 800px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 0;
+            padding-top: 40px; /* کاهش از 80px به 40px برای بالاتر بردن بنر */
+            border-radius: 10px; /* اضافه کردن گوشه‌های گرد */
+            overflow: hidden; /* برای اطمینان از اعمال border-radius */
+        }
+        .hero-swiper .swiper-slide {
+            width: 100% !important;
+            height: 800px; /* تنظیم ارتفاع اسلاید به صورت دستی */
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+            position: relative;
+            border-radius: 10px; /* گوشه‌های گرد برای اسلاید */
+        }
+        .hero-swiper .swiper-slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+            border-radius: 10px; /* گوشه‌های گرد برای لایه تیره */
+        }
+        .hero-swiper .swiper-slide-content {
+            position: relative;
+            z-index: 2;
+            padding: 20px;
+        }
+        .hero-swiper .swiper-slide h3 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .hero-swiper .swiper-slide p {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .hero-swiper .swiper-pagination {
+            bottom: 10px;
+        }
+
+        .card {
+            height: 460px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 0.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-text.content {
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-footer {
+            margin-top: auto;
+        }
+
+        .btn-outline-primary {
+            font-size: 0.875rem;
+            width: 100%;
+        }
+
+        #welcome-msg {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .container {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+
+        @media (max-width: 768px) {
+            .swiper-slide {
+                width: 260px !important;
+            }
+            .hero-swiper {
+                height: 450px;
+                padding-top: 30px; /* کاهش از 60px به 30px برای بالاتر بردن بنر در موبایل */
+                border-radius: 8px; /* گوشه‌های گرد کمی کوچکتر در موبایل */
+            }
+            .hero-swiper .swiper-slide {
+                height: 450px;
+                border-radius: 8px;
+            }
+            .hero-swiper .swiper-slide::before {
+                border-radius: 8px;
+            }
+            .hero-swiper .swiper-slide h3 {
+                font-size: 1.8rem;
+            }
+            .hero-swiper .swiper-slide p {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' and user.is_authenticated %}
+            <div id="welcome-msg" class="alert alert-success text-center fade-message" role="alert">
+                {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<!-- بنر اسلایدی -->
+<div class="hero-swiper">
+    <div class="swiper mySwiper-hero">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide" style="background-image: url('{% static 'images/Aurora_banner_1.jpg' %}');">
+                <div class="swiper-slide-content">
+                    <h3>هر کلیک، یه قدم به جلو</h3>
+                    <p>آخرین و بهترین محتواها را اینجا بخوانید.</p>
+                </div>
+            </div>
+            <div class="swiper-slide" style="background-image: url('{% static 'images/ocean_banner.jpg' %}');">
+                <div class="swiper-slide-content">
+                    <h3>هر آنچه نیاز داری، با یک کلیک</h3>
+                    <p>با ما به روز بمانید.</p>
+                </div>
+            </div>
+        </div>
+        <div class="swiper-pagination"></div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- جدیدترین مقالات -->
+    <h2 class="mb-4">📚 جدیدترین مقالات</h2>
+    {% if latest_posts %}
+        <div class="swiper mySwiper-latest">
+            <div class="swiper-wrapper">
+                {% for post in latest_posts %}
+                    <div class="swiper-slide">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ post.title }}</h5>
+                                {% if post.image %}
+                                    <img src="{{ post.image.url }}" alt="{{ post.title }}" class="card-img">
+                                {% else %}
+                                    <img src="{% static 'images/empty-article.png' %}" alt="تصویر پیش‌فرض" class="card-img">
+                                {% endif %}
+                                <p class="card-text content">{{ post.content|safe|truncatewords:30 }}</p>
+                            </div>
+                            <div class="card-footer p-3">
+                                <p class="text-muted mb-2">
+                                    <small>توسط: {{ post.author }} - {{ post.published_at|date:"Y/m/d" }}</small>
+                                </p>
+                                <a href="{% url 'post_detail' slug=post.slug %}" class="btn btn-outline-primary btn-sm">ادامه مطلب</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    {% else %}
+        <p class="text-muted mt-3">هیچ مقاله‌ای برای انتشار امروز وجود ندارد.</p>
+    {% endif %}
+
+    <!-- همه مقالات -->
+    <h2 class="mb-4 mt-5">📁 همه مقالات</h2>
+    {% if all_posts %}
+        <div class="swiper mySwiper-all">
+            <div class="swiper-wrapper">
+                {% for post in all_posts %}
+                    <div class="swiper-slide">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ post.title }}</h5>
+                                {% if post.image %}
+                                    <img src="{{ post.image.url }}" alt="تصویر مقاله {{ post.title }}" class="card-img">
+                                {% else %}
+                                    <img src="{% static 'images/empty-article.png' %}" alt="تصویر پیش‌فرض برای {{ post.title }}" class="card-img">
+                                {% endif %}
+
+                                <p class="card-text content">{{ post.content|safe|truncatewords:30 }}</p>
+
+                            </div>
+                            <div class="card-footer p-3">
+                                <p class="text-muted mb-2">
+                                    <small>توسط: {{ post.author }} - {{ post.published_at|date:"Y/m/d" }}</small>
+                                </p>
+                                <a href="{% url 'post_detail' slug=post.slug %}" class="btn btn-outline-primary btn-sm">ادامه مطلب</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    {% else %}
+        <p class="text-muted mt-3">هیچ مقاله‌ای برای نمایش وجود ندارد.</p>
+    {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    new Swiper('.mySwiper-hero', {
+        autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+        },
+        pagination: {
+            el: '.mySwiper-hero .swiper-pagination',
+            clickable: true,
+        },
+        rtl: true,
+    });
+
+    new Swiper('.mySwiper-latest', {
+        slidesPerView: 'auto',
+        spaceBetween: 20,
+        pagination: {
+            el: '.mySwiper-latest .swiper-pagination',
+            clickable: true,
+        },
+        rtl: true,
+    });
+
+    new Swiper('.mySwiper-all', {
+        slidesPerView: 'auto',
+        spaceBetween: 20,
+        pagination: {
+            el: '.mySwiper-all .swiper-pagination',
+            clickable: true,
+        },
+        rtl: true,
+    });
+
+    setTimeout(function () {
+        let msg = document.getElementById('welcome-msg');
+        if (msg) {
+            msg.style.opacity = '0';
+            setTimeout(() => msg.remove(), 500);
+        }
+    }, 3000);
+</script>
+
+</body>
+</html>
+{% endblock %}
