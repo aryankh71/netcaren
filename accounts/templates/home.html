@@ -23,13 +23,13 @@
             position: relative;
             overflow: hidden;
             margin-bottom: 0;
-            padding-top: 40px; /* کاهش از 80px به 40px برای بالاتر بردن بنر */
-            border-radius: 10px; /* اضافه کردن گوشه‌های گرد */
-            overflow: hidden; /* برای اطمینان از اعمال border-radius */
+            padding-top: 40px;
+            border-radius: 10px;
+            overflow: hidden;
         }
         .hero-swiper .swiper-slide {
             width: 100% !important;
-            height: 800px; /* تنظیم ارتفاع اسلاید به صورت دستی */
+            height: 800px;
             background-size: cover;
             background-position: center;
             display: flex;
@@ -38,7 +38,7 @@
             text-align: center;
             color: #fff;
             position: relative;
-            border-radius: 10px; /* گوشه‌های گرد برای اسلاید */
+            border-radius: 10px;
         }
         .hero-swiper .swiper-slide::before {
             content: '';
@@ -49,7 +49,7 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.4);
             z-index: 1;
-            border-radius: 10px; /* گوشه‌های گرد برای لایه تیره */
+            border-radius: 10px;
         }
         .hero-swiper .swiper-slide-content {
             position: relative;
@@ -120,6 +120,7 @@
             z-index: 1050;
             max-width: 400px;
             width: 90%;
+            transition: opacity 0.5s ease;
         }
 
         .container {
@@ -133,8 +134,8 @@
             }
             .hero-swiper {
                 height: 450px;
-                padding-top: 30px; /* کاهش از 60px به 30px برای بالاتر بردن بنر در موبایل */
-                border-radius: 8px; /* گوشه‌های گرد کمی کوچکتر در موبایل */
+                padding-top: 30px;
+                border-radius: 8px;
             }
             .hero-swiper .swiper-slide {
                 height: 450px;
@@ -196,13 +197,13 @@
                     <div class="swiper-slide">
                         <div class="card shadow-sm">
                             <div class="card-body">
-                                <h5 class="card-title">{{ post.title }}</h5>
+                                <h5 class="card-title" title="{{ post.title }}">{{ post.title|truncatewords:3 }}</h5>
                                 {% if post.image %}
                                     <img src="{{ post.image.url }}" alt="{{ post.title }}" class="card-img">
                                 {% else %}
                                     <img src="{% static 'images/empty-article.png' %}" alt="تصویر پیش‌فرض" class="card-img">
                                 {% endif %}
-                                <p class="card-text content">{{ post.content|safe|truncatewords:30 }}</p>
+                                <p class="card-text content">{{ post.content|safe|truncatewords:15 }}</p>
                             </div>
                             <div class="card-footer p-3">
                                 <p class="text-muted mb-2">
@@ -229,15 +230,13 @@
                     <div class="swiper-slide">
                         <div class="card shadow-sm">
                             <div class="card-body">
-                                <h5 class="card-title">{{ post.title }}</h5>
+                                <h5 class="card-title" title="{{ post.title }}">{{ post.title|truncatewords:3 }}</h5>
                                 {% if post.image %}
                                     <img src="{{ post.image.url }}" alt="تصویر مقاله {{ post.title }}" class="card-img">
                                 {% else %}
                                     <img src="{% static 'images/empty-article.png' %}" alt="تصویر پیش‌فرض برای {{ post.title }}" class="card-img">
                                 {% endif %}
-
-                                <p class="card-text content">{{ post.content|safe|truncatewords:30 }}</p>
-
+                                <p class="card-text content">{{ post.content|safe|truncatewords:15 }}</p>
                             </div>
                             <div class="card-footer p-3">
                                 <p class="text-muted mb-2">
@@ -295,9 +294,9 @@
         let msg = document.getElementById('welcome-msg');
         if (msg) {
             msg.style.opacity = '0';
-            setTimeout(() => msg.remove(), 500);
+            setTimeout(() => msg.remove(), 1000);
         }
-    }, 3000);
+    }, 4000);
 </script>
 
 </body>

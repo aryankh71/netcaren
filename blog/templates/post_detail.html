@@ -25,17 +25,47 @@
             line-height: 1.2;
         }
         .post-image {
-            max-width: 100%;
+            width: 100%;
+            max-width: 800px;
+            min-width: 300px;
             height: auto;
             border-radius: 10px;
             margin-bottom: 20px;
-            object-fit: contain;
+            object-fit: cover;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
         .post-content {
             font-size: 1.1rem;
             color: #333;
-            line-height: 1.8;
+            line-height: 1.5;
             margin-bottom: 30px;
+        }
+        .post-content p {
+            margin: 0 0 0.8em 0;
+        }
+        .ck-content .image {
+            max-width: 100%;
+            height: auto;
+            margin: 1em auto;
+        }
+        .ck-content .image-style-align-center {
+            display: block;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .ck-content .image-style-align-right {
+            float: right;
+            margin-left: 1em;
+        }
+        .ck-content .image-style-align-left {
+            float: left;
+            margin-right: 1em;
+        }
+        .post-content img {
+            max-width: 100%;
+            height: auto;
         }
         .post-meta {
             font-size: 0.9rem;
@@ -62,9 +92,93 @@
         .back-btn:hover {
             background: #0056b3;
         }
+        .comments-section {
+            margin-top: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .comments-section h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+        .comment {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            transition: background 0.2s;
+        }
+        .comment:hover {
+            background: #f1f3f5;
+        }
+        .comment.reply {
+            margin-right: 30px;
+            border-right: 2px solid #007bff;
+            padding-right: 10px;
+        }
+        .comment-meta {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-bottom: 8px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .comment-body {
+            font-size: 1rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        .reply-btn {
+            font-size: 0.85rem;
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .reply-btn:hover {
+            color: #0056b3;
+        }
+        .comment-form-container, .reply-form {
+            margin-top: 20px;
+        }
+        .reply-form {
+            display: none;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            padding: 5px 10px;
+            background: #f8d7da;
+            border-radius: 5px;
+            display: none;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+        }
+        .btn-primary {
+            background: #007bff;
+            border: none;
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+        .btn-primary:hover {
+            background: #0056b3;
+        }
         @media (max-width: 768px) {
             .post-title { font-size: 2rem; }
             .post-container { padding: 20px; }
+            .post-image { max-width: 100%; }
+            .comment.reply { margin-right: 15px; }
+            .comments-section { padding: 15px; }
         }
     </style>
 </head>
@@ -74,7 +188,7 @@
         {% if post.image %}
             <img src="{{ post.image.url }}" alt="{{ post.title }}" class="post-image">
         {% else %}
-            <img src="{% static 'images/empty-article.png' %}" alt="بدون تصویر" class="card-img">
+            <img src="{% static 'images/empty-article.png' %}" alt="بدون تصویر" class="post-image">
         {% endif %}
         <div class="post-content">{{ post.content|safe }}</div>
         <div class="post-meta">
@@ -82,9 +196,127 @@
             <span>تاریخ انتشار: {{ post.published_at|date:"Y/m/d H:i" }}</span>
             <span>آخرین به‌روزرسانی: {{ post.updated_at|date:"Y/m/d H:i" }}</span>
         </div>
-        <a href="{% url 'home' %}" class="back-btn">بازگشت به خانه</a>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdlZxGxv/9C+6Z7u" crossorigin="anonymous"></script>
-</body>
+
+        <!-- بخش کامنت‌ها -->
+        <div class="comments-section">
+            <h3>نظرات ({{ comments_count }})</h3>
+            {% for comment in post.comments.all %}
+                <div class="comment {% if comment.parent %}reply{% endif %}" id="comment-{{ comment.id }}">
+                    <div class="comment-meta">
+                        <strong>{{ comment.author.username|default:"ناشناس" }}</strong>
+                        <span>{{ comment.created_at|date:"Y/m/d H:i" }}</span>
+                        {% if user == post.author and not comment.parent %}
+                            <a href="#" class="reply-btn" onclick="showReplyForm({{ comment.id }})">پاسخ</a>
+                        {% endif %}
+                    </div>
+                    <div class="comment-body">{{ comment.body }}</div>
+                    <!-- نمایش پاسخ‌ها -->
+                    {% for reply in comment.replies.all %}
+                        <div class="comment reply" id="comment-{{ reply.id }}">
+                            <div class="comment-meta">
+                                <strong>{{ reply.author.username|default:"ناشناس" }}</strong>
+                                <span>{{ reply.created_at|date:"Y/m/d H:i" }}</span>
+                            </div>
+                            <div class="comment-body">{{ reply.body }}</div>
+                        </div>
+                    {% endfor %}
+                    <!-- فرم پاسخ (فقط برای نویسنده پست) -->
+                    {% if user == post.author %}
+                        <div class="reply-form" id="reply-form-{{ comment.id }}">
+                            <form class="comment-form" action="{% url 'add_comment' post_slug=post.slug parent_id=comment.id %}" method="post">
+                                {% csrf_token %}
+                                {{ comment_form }}
+                                <div class="error-message" id="error-{{ comment.id }}"></div>
+                                <button type="submit" class="btn btn-primary mt-2">ارسال پاسخ</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                {% empty %}
+                    <p class="text-muted">هنوز نظری ثبت نشده است.</p>
+                {% endfor %}
+
+                <!-- فرم افزودن کامنت اصلی -->
+                {% if user.is_authenticated %}
+                    <div class="comment-form-container">
+                        <h4>ارسال نظر</h4>
+                        <form class="comment-form" action="{% url 'add_comment' post_slug=post.slug %}" method="post">
+                            {% csrf_token %}
+                            {{ comment_form }}
+                            <div class="error-message" id="error-main"></div>
+                            <button type="submit" class="btn btn-primary mt-2">ارسال نظر</button>
+                        </form>
+                    </div>
+                {% else %}
+                    <p class="text-muted">برای ارسال نظر، لطفاً <a href="{% url 'login' %}">وارد شوید</a>.</p>
+                {% endif %}
+            </div>
+
+            <a href="{% url 'home' %}" class="back-btn">بازگشت به خانه</a>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdlZxGxv/9C+6Z7u" crossorigin="anonymous"></script>
+        <script>
+            function showReplyForm(commentId) {
+                document.querySelectorAll('.reply-form').forEach(form => {
+                    form.style.display = 'none';
+                    form.classList.remove('active');
+                });
+                const replyForm = document.getElementById(`reply-form-${commentId}`);
+                replyForm.style.display = 'block';
+                setTimeout(() => replyForm.classList.add('active'), 10);
+            }
+
+            document.querySelectorAll('.comment-form').forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    const errorDiv = this.querySelector('.error-message');
+
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => { throw new Error(data.error); });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = `comment ${data.is_reply ? 'reply' : ''}`;
+                        commentDiv.id = `comment-${data.id}`;
+                        commentDiv.innerHTML = `
+                            <div class="comment-meta">
+                                <strong>${data.author}</strong>
+                                <span>${data.created_at}</span>
+                            </div>
+                            <div class="comment-body">${data.body}</div>
+                        `;
+                        if (data.is_reply) {
+                            document.getElementById(`comment-${formData.get('parent_id')}`).appendChild(commentDiv);
+                            document.getElementById(`reply-form-${formData.get('parent_id')}`).style.display = 'none';
+                        } else {
+                            document.querySelector('.comments-section').prepend(commentDiv);
+                            // به‌روزرسانی تعداد کامنت‌ها
+                            const commentsCount = document.querySelector('.comments-section h3');
+                            const currentCount = parseInt(commentsCount.textContent.match(/\d+/)[0]);
+                            commentsCount.textContent = `نظرات (${currentCount + 1})`;
+                        }
+                        form.reset();
+                        errorDiv.style.display = 'none';
+                        errorDiv.textContent = '';
+                    })
+                    .catch(error => {
+                        errorDiv.style.display = 'block';
+                        errorDiv.textContent = error.message;
+                    });
+                });
+            });
+        </script>
+    </body>
 </html>
 {% endblock %}
