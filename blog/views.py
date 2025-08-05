@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
 from .models import Post
 from django.http import JsonResponse
@@ -10,9 +10,9 @@ from .forms import CommentForm
 
 
 
-def post_detail(request, slug):
-    post = get_object_or_404(Post, slug=slug, is_published=True)
-    return render(request, 'post_detail.html', {'post': post})
+# def post_detail(request, slug):
+#     post = get_object_or_404(Post, slug=slug, is_published=True)
+#     return render(request, 'post_detail.html', {'post': post})
 
 
 # def search_view(request):
@@ -46,7 +46,17 @@ def search_view(request):
 
 
 
-
+def post_detail(request, slug):
+    post = get_object_or_404(Post, slug=slug)
+    comment_form = CommentForm()  # فرم برای کامنت و ریپلای
+    comments = post.comments.filter(is_visible=True).select_related('author', 'parent')
+    comments_count = comments.count()
+    return render(request, 'post_detail.html', {
+        'post': post,
+        'comment_form': comment_form,
+        'comments': comments,
+        'comments_count': comments_count
+    })
 
 @login_required
 def add_comment(request, post_slug, parent_id=None):
@@ -75,7 +85,8 @@ def add_comment(request, post_slug, parent_id=None):
                     'body': comment.body,
                     'author': comment.author.username,
                     'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M'),
-                    'is_reply': bool(parent_id)
+                    'is_reply': bool(parent_id),
+                    'comments_count': post.comments.filter(is_visible=True).count()
                 })
             return redirect('post_detail', slug=post_slug)
 
