@@ -1,5 +1,5 @@
 from django import forms
-from .models import Comment
+from .models import Comment, Post
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -23,3 +23,22 @@ class CommentForm(forms.ModelForm):
         if len(body) < 5:
             raise forms.ValidationError('متن کامنت باید حداقل ۵ کاراکتر باشد.')
         return body
+
+
+
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'content', 'author', 'published_at', 'is_published', 'image']
+        widgets = {
+            'published_at': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }
+        labels = {
+            'title': 'عنوان',
+            'content': 'محتوا',
+            'author': 'نویسنده',
+            'published_at': 'تاریخ انتشار',
+            'is_published': 'منتشر شود؟',
+            'image': 'تصویر',
+        }

@@ -1,0 +1,10 @@
+{% extends 'panel.html' %}
+{% block content %}
+<h2>حذف مقاله</h2>
+<p>آیا مطمئن هستید که می‌خواهید مقاله "{{ post.title }}" را حذف کنید؟</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit">بله، حذف کن</button>
+  <a href="{% url 'post_list' %}">لغو</a>
+</form>
+{% endblock %}

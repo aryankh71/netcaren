@@ -1,0 +1,89 @@
+{% extends 'panel.html' %}
+{% block content %}
+<h2>لیست مقالات</h2>
+<div class="mb-3">
+    <a href="{% url 'post_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> ایجاد مقاله جدید</a>
+</div>
+<div class="table-container">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th data-sort="title">عنوان <i class="fas fa-sort"></i></th>
+                <th data-sort="author">نویسنده <i class="fas fa-sort"></i></th>
+                <th data-sort="is_published">منتشر شده؟ <i class="fas fa-sort"></i></th>
+                <th data-sort="published_at">تاریخ انتشار <i class="fas fa-sort"></i></th>
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}
+            <tr>
+                <td>{{ post.title }}</td>
+                <td>{{ post.author.username }}</td>
+                <td>
+                    <span class="publish-toggle" data-post-id="{{ post.pk }}" data-is-published="{{ post.is_published|lower }}">
+                        {% if post.is_published %}<i class="fas fa-check-square"></i>{% else %}<i class="far fa-square"></i>{% endif %}
+                    </span>
+                </td>
+                <td>{{ post.published_at|date:"Y-m-d H:i" }}</td>
+                <td class="action-buttons">
+                    <a href="{% url 'post_update' post.pk %}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i> ویرایش</a>
+                    <a href="{% url 'post_delete' post.pk %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> حذف</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    document.querySelectorAll('th[data-sort]').forEach(header => {
+        header.addEventListener('click', () => {
+            const column = header.getAttribute('data-sort');
+            console.log(`Sorting by ${column}`);
+            header.parentElement.prepend(header);
+        });
+    });
+
+    document.querySelectorAll('.publish-toggle').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            const postId = toggle.getAttribute('data-post-id');
+            const isPublished = toggle.getAttribute('data-is-published') === 'true';
+            const confirmation = isPublished
+                ? confirm("آیا میخواهید این پست غیرفعال شود؟")
+                : confirm("آیا میخواهید این پست منتشر شود؟");
+            if (confirmation) {
+                fetch(`{% url 'post_toggle_publish' 0 %}`.replace('0', postId), {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ is_published: !isPublished }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        toggle.setAttribute('data-is-published', data.is_published);
+                        toggle.querySelector('i').classList.toggle('far');
+                        toggle.querySelector('i').classList.toggle('fas');
+                        toggle.querySelector('i').classList.toggle('fa-square');
+                        toggle.querySelector('i').classList.toggle('fa-check-square');
+                        console.log(`Publish status for post ${postId} updated to ${data.is_published}`);
+                    } else {
+                        alert('خطا در تغییر وضعیت انتشار: ' + (data.error || 'خطا ناشناخته'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('خطا در ارتباط با سرور');
+                    // Revert the toggle if the request fails
+                    toggle.querySelector('i').classList.toggle('far');
+                    toggle.querySelector('i').classList.toggle('fas');
+                    toggle.querySelector('i').classList.toggle('fa-square');
+                    toggle.querySelector('i').classList.toggle('fa-check-square');
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}
