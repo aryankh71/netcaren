@@ -1,0 +1,130 @@
+{% extends 'panel.html' %}
+{% block content %}
+<div class="wp-editor-container" style="max-width: 1200px; margin: 20px; font-family: 'Vazirmatn', Tahoma, sans-serif;">
+  <form method="post" enctype="multipart/form-data" action="{% url 'post_list' %}">
+    {% csrf_token %}
+    <div class="row g-4">
+      <!-- ستون راست: عنوان + ادیتور -->
+      <div class="col-md-8">
+        <!-- باکس عنوان -->
+        <div class="card border-light shadow-sm" style="border-radius: 5px; background: #fff;">
+          <div class="card-body">
+            <h4 class="card-title" style="font-size: 16px; color: #23282d; margin: 0 0 10px;">عنوان مقاله</h4>
+            <input type="text" name="title" value="{{ form.title.value|default_if_none:'' }}" placeholder="عنوان مقاله را وارد کنید" class="form-control" style="padding: 10px; border: 1px solid #ccd0d4; border-radius: 4px; font-size: 14px;">
+          </div>
+        </div>
+
+        <!-- باکس ادیتور -->
+        <div class="card border-light shadow-sm mt-3" style="border-radius: 5px; background: #fff;">
+          <div class="card-body">
+            <h4 class="card-title" style="font-size: 16px; color: #23282d; margin: 0 0 10px;">محتوا</h4>
+            {{ form.media }}
+            {{ form.content }}
+          </div>
+        </div>
+      </div>
+
+      <!-- ستون چپ: تنظیمات انتشار + تصویر شاخص + دسته‌بندی‌ها + برچسب‌ها + دکمه‌ها -->
+      <div class="col-md-4">
+        <!-- باکس تنظیمات انتشار -->
+        <div class="card border-light shadow-sm" style="border-radius: 5px; background: #fff;">
+          <div class="card-body">
+            <h4 class="card-title" style="font-size: 16px; color: #23282d; margin: 0 0 10px;">تنظیمات انتشار</h4>
+            <div class="form-check mb-3">
+              <input type="checkbox" name="is_published" class="form-check-input" id="is_published" {% if form.is_published.value %}checked{% endif %}>
+              <label class="form-check-label" for="is_published" style="font-size: 14px;">منتشر شود؟</label>
+            </div>
+            <label for="{{ form.published_at.id_for_label }}" style="font-size: 14px; display: block; margin-bottom: 5px;">تاریخ انتشار</label>
+            {{ form.published_at }}
+          </div>
+        </div>
+
+        <!-- باکس تصویر شاخص -->
+        <div class="card border-light shadow-sm mt-3" style="border-radius: 5px; background: #fff;">
+          <div class="card-body">
+            <h4 class="card-title" style="font-size: 16px; color: #23282d; margin: 0 0 10px;">تصویر شاخص</h4>
+            <div id="image-preview" class="mb-3">
+              {% if post.image %}
+                <img id="thumbnail" src="{{ post.image.url }}" style="width: 100%; max-height: 150px; display: block; border: 1px solid #ccd0d4; border-radius: 4px; object-fit: cover;">
+              {% else %}
+                <img id="thumbnail" style="display: none; width: 100%; max-height: 150px; border: 1px solid #ccd0d4; border-radius: 4px; object-fit: cover;">
+              {% endif %}
+            </div>
+            {{ form.image }}
+          </div>
+        </div>
+
+        <!-- باکس دسته‌بندی‌ها -->
+        <div class="card border-light shadow-sm mt-3" style="border-radius: 5px; background: #fff;">
+          <div class="card-body">
+            <h4 class="card-title" style="font-size: 16px; color: #23282d; margin: 0 0 10px;">دسته‌بندی‌ها</h4>
+            {{ form.categories }}
+          </div>
+        </div>
+
+        <!-- باکس برچسب‌ها -->
+        <div class="card border-light shadow-sm mt-3" style="border-radius: 5px; background: #fff;">
+          <div class="card-body">
+            <h4 class="card-title" style="font-size: 16px; color: #23282d; margin: 0 0 10px;">برچسب‌ها</h4>
+            <input type="text" name="tags" placeholder="برچسب‌ها (با کاما جدا کنید)" class="form-control" style="padding: 10px; border: 1px solid #ccd0d4; border-radius: 4px; font-size: 14px;">
+          </div>
+        </div>
+
+        <!-- دکمه‌ها -->
+        <div class="card border-light shadow-sm mt-3" style="border-radius: 5px; background: #fff;">
+          <div class="card-body">
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary" style="flex: 1; padding: 10px; background: #007cba; border: none; border-radius: 4px; font-size: 14px;">ذخیره و انتشار</button>
+              <button type="submit" name="draft" class="btn btn-secondary" style="flex: 1; padding: 10px; background: #6c757d; border: none; border-radius: 4px; font-size: 14px;">ذخیره پیش‌نویس</button>
+            </div>
+            <a href="{% url 'post_list' %}" class="btn btn-outline-secondary d-block mt-2" style="padding: 10px; color: #23282d; border: 1px solid #ccd0d4; border-radius: 4px; font-size: 14px; text-decoration: none; text-align: center;" onclick="return confirm('آیا مطمئن هستید انصراف می‌دهید؟');">انصراف</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<style>
+  .wp-editor-container .form-control,
+  .wp-editor-container input[type="text"],
+  .wp-editor-container input[type="datetime-local"],
+  .wp-editor-container select {
+    box-sizing: border-box;
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    border-color: #ccd0d4;
+  }
+  .wp-editor-container .btn:hover {
+    opacity: 0.85;
+  }
+  .wp-editor-container .card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .wp-editor-container .form-check-input:checked {
+    background-color: #007cba;
+    border-color: #007cba;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const imageInput = document.querySelector('input[type="file"]');
+  const thumbnail = document.getElementById('thumbnail');
+
+  imageInput.addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        thumbnail.src = e.target.result;
+        thumbnail.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      thumbnail.style.display = 'none';
+      thumbnail.src = '';
+    }
+  });
+});
+</script>
+{% endblock %}

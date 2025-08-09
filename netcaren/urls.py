@@ -21,7 +21,9 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', include('content_management.urls')),
     path('', include('accounts.urls')),  # صفحه اصلی برای اپ accounts
     path('', include('blog.urls')),  # مسیر جداگانه برای اپ blog
     path('ckeditor5/', include('django_ckeditor_5.urls')),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
