@@ -30,7 +30,7 @@ class CommentForm(forms.ModelForm):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'content', 'author', 'published_at', 'is_published', 'image']
+        fields = ['title', 'content', 'published_at', 'is_published', 'image']
         widgets = {
             'published_at': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }

@@ -9,7 +9,7 @@ from django.conf import settings
 
 
 def persian_slugify(text):
-    return slugify(text, separator="-", transliterate=False, allow_unicode=True)
+    return slugify(text, separator="-", allow_unicode=True)
 
 class Post(models.Model):
     title = models.CharField(max_length=200, verbose_name='عنوان')

@@ -1,57 +1,282 @@
 {% extends '../../panel.html' %}
 {% block content %}
-<h2>لیست مقالات</h2>
-<div class="mb-3">
-    <a href="{% url 'post_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> ایجاد مقاله جدید</a>
+<style>
+    /* WordPress-like admin styles */
+    .wrap {
+        max-width: 1200px;
+        margin: 20px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+        direction: rtl;
+        text-align: right;
+    }
+    .wp-heading-inline {
+        font-size: 23px;
+        font-weight: 400;
+        margin: 0;
+        padding: 9px 0 4px;
+        line-height: 1.3;
+    }
+    .page-title-action {
+        display: inline-block;
+        padding: 4px 8px;
+        font-size: 13px;
+        line-height: 26px;
+        height: 30px;
+        margin: 6px 0 0 10px;
+        border: 1px solid #2271b1;
+        border-radius: 2px;
+        background: #2271b1;
+        color: #fff;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .page-title-action:hover {
+        background: #135e96;
+        border-color: #135e96;
+        color: #fff;
+    }
+    .wp-header-end {
+        border-bottom: 1px solid #ddd;
+        margin: 0 0 20px;
+        padding: 0;
+        height: 1px;
+    }
+    .table-container {
+        background: #fff;
+        border: 1px solid #c3c4c7;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+        margin-bottom: 20px;
+    }
+    .table-striped tbody tr:nth-child(odd) {
+        background-color: #f6f7f7;
+    }
+    .table-striped tbody tr:hover {
+        background-color: #f0f6fc;
+    }
+    .table th, .table td {
+        padding: 8px 10px;
+        font-size: 13px;
+        vertical-align: middle;
+    }
+    .table th {
+        background: #f9f9f9;
+        border-bottom: 1px solid #c3c4c7;
+        cursor: pointer;
+    }
+    .table th i.fa-sort {
+        margin-left: 5px;
+        color: #787c82;
+    }
+    .action-buttons {
+        visibility: hidden;
+        font-size: 13px;
+    }
+    .table-striped tbody tr:hover .action-buttons {
+        visibility: visible;
+    }
+    .action-buttons a {
+        margin-left: 10px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .action-buttons a.edit {
+        color: #2271b1;
+    }
+    .action-buttons a.edit:hover {
+        color: #135e96;
+        text-decoration: underline;
+    }
+    .action-buttons a.delete {
+        color: #d63638;
+    }
+    .action-buttons a.delete:hover {
+        color: #b32d2e;
+        text-decoration: underline;
+    }
+    .action-buttons i {
+        margin-left: 4px;
+        font-size: 14px;
+    }
+    .publish-toggle {
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+    }
+    .publish-toggle i {
+        font-size: 18px;
+        color: #2271b1;
+    }
+    .publish-toggle.loading i {
+        color: #ccc;
+    }
+    .tablenav {
+        padding: 8px 0;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+    }
+    .tablenav-pages {
+        font-size: 13px;
+    }
+    .tablenav-pages a, .tablenav-pages span.current {
+        padding: 0 10px;
+        line-height: 30px;
+        border: 1px solid #c3c4c7;
+        background: #fff;
+        margin-right: 4px;
+        text-decoration: none;
+        color: #2271b1;
+    }
+    .tablenav-pages a:hover {
+        background: #f6f7f7;
+    }
+    .tablenav-pages span.current {
+        background: #2271b1;
+        color: #fff;
+        border-color: #2271b1;
+    }
+    @media screen and (max-width: 782px) {
+        .table-container {
+            overflow-x: auto;
+        }
+        .table th, .table td {
+            font-size: 12px;
+            padding: 6px;
+        }
+        .action-buttons a {
+            font-size: 11px;
+            margin-left: 6px;
+        }
+    }
+</style>
+
+<div class="wrap">
+    <h1 class="wp-heading-inline">لیست مقالات</h1>
+    <a href="{% url 'post_create' %}" class="page-title-action"><i class="fas fa-plus"></i> افزودن جدید</a>
+    <hr class="wp-header-end">
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="tablenav top">
+        <div class="tablenav-pages">
+            <span class="displaying-num">{{ page_obj.paginator.count }} مورد</span>
+            <span class="pagination-links">
+                {% if page_obj.has_previous %}
+                    <a class="first-page" href="?page=1">&laquo;</a>
+                    <a class="prev-page" href="?page={{ page_obj.previous_page_number }}">&lsaquo;</a>
+                {% else %}
+                    <span class="tablenav-pages-navspan">&laquo;</span>
+                    <span class="tablenav-pages-navspan">&lsaquo;</span>
+                {% endif %}
+                <span class="paging-input">
+                    صفحه <span class="current-page">{{ page_obj.number }}</span> از <span class="total-pages">{{ page_obj.paginator.num_pages }}</span>
+                </span>
+                {% if page_obj.has_next %}
+                    <a class="next-page" href="?page={{ page_obj.next_page_number }}">&rsaquo;</a>
+                    <a class="last-page" href="?page={{ page_obj.paginator.num_pages }}">&raquo;</a>
+                {% else %}
+                    <span class="tablenav-pages-navspan">&rsaquo;</span>
+                    <span class="tablenav-pages-navspan">&raquo;</span>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Post Table -->
+    <div class="table-container">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th data-sort="title">عنوان <i class="fas fa-sort"></i></th>
+                    <th data-sort="author">نویسنده <i class="fas fa-sort"></i></th>
+                    <th data-sort="is_published">منتشر شده؟ <i class="fas fa-sort"></i></th>
+                    <th data-sort="published_at">تاریخ انتشار <i class="fas fa-sort"></i></th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for post in posts %}
+                <tr>
+                    <td>{{ post.title }}</td>
+                    <td>{{ post.author.username }}</td>
+                    <td>
+                        <span class="publish-toggle" data-post-id="{{ post.pk }}" data-is-published="{{ post.is_published|lower }}">
+                            {% if post.is_published %}
+                                <i class="fas fa-check-square"></i>
+                            {% else %}
+                                <i class="far fa-square"></i>
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>{{ post.published_at|date:"Y-m-d H:i" }}</td>
+                    <td class="action-buttons">
+                        <a href="{% url 'post_update' post.pk %}" class="edit"><i class="fas fa-edit"></i> ویرایش</a>
+                        <a href="{% url 'post_delete' post.pk %}" class="delete"><i class="fas fa-trash"></i> حذف</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">هیچ مقاله‌ای یافت نشد.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Bottom Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="tablenav bottom">
+        <div class="tablenav-pages">
+            <span class="displaying-num">{{ page_obj.paginator.count }} مورد</span>
+            <span class="pagination-links">
+                {% if page_obj.has_previous %}
+                    <a class="first-page" href="?page=1">&laquo;</a>
+                    <a class="prev-page" href="?page={{ page_obj.previous_page_number }}">&lsaquo;</a>
+                {% else %}
+                    <span class="tablenav-pages-navspan">&laquo;</span>
+                    <span class="tablenav-pages-navspan">&lsaquo;</span>
+                {% endif %}
+                <span class="paging-input">
+                    صفحه <span class="current-page">{{ page_obj.number }}</span> از <span class="total-pages">{{ page_obj.paginator.num_pages }}</span>
+                </span>
+                {% if page_obj.has_next %}
+                    <a class="next-page" href="?page={{ page_obj.next_page_number }}">&rsaquo;</a>
+                    <a class="last-page" href="?page={{ page_obj.paginator.num_pages }}">&raquo;</a>
+                {% else %}
+                    <span class="tablenav-pages-navspan">&rsaquo;</span>
+                    <span class="tablenav-pages-navspan">&raquo;</span>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+    {% endif %}
 </div>
-<div class="table-container">
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th data-sort="title">عنوان <i class="fas fa-sort"></i></th>
-                <th data-sort="author">نویسنده <i class="fas fa-sort"></i></th>
-                <th data-sort="is_published">منتشر شده؟ <i class="fas fa-sort"></i></th>
-                <th data-sort="published_at">تاریخ انتشار <i class="fas fa-sort"></i></th>
-                <th>عملیات</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for post in posts %}
-            <tr>
-                <td>{{ post.title }}</td>
-                <td>{{ post.author.username }}</td>
-                <td>
-                    <span class="publish-toggle" data-post-id="{{ post.pk }}" data-is-published="{{ post.is_published|lower }}">
-                        {% if post.is_published %}<i class="fas fa-check-square"></i>{% else %}<i class="far fa-square"></i>{% endif %}
-                    </span>
-                </td>
-                <td>{{ post.published_at|date:"Y-m-d H:i" }}</td>
-                <td class="action-buttons">
-                    <a href="{% url 'post_update' post.pk %}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i> ویرایش</a>
-                    <a href="{% url 'post_delete' post.pk %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> حذف</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+
 <script>
+    // Sorting
     document.querySelectorAll('th[data-sort]').forEach(header => {
         header.addEventListener('click', () => {
             const column = header.getAttribute('data-sort');
-            console.log(`Sorting by ${column}`);
-            header.parentElement.prepend(header);
+            const url = new URL(window.location);
+            const currentSort = url.searchParams.get('sort') || '';
+            const newSort = currentSort === column ? `-${column}` : column;
+            url.searchParams.set('sort', newSort);
+            window.location.href = url.toString();
         });
     });
 
+    // Publish Toggle
     document.querySelectorAll('.publish-toggle').forEach(toggle => {
         toggle.addEventListener('click', () => {
+            if (toggle.classList.contains('loading')) return;
             const postId = toggle.getAttribute('data-post-id');
             const isPublished = toggle.getAttribute('data-is-published') === 'true';
             const confirmation = isPublished
-                ? confirm("آیا میخواهید این پست غیرفعال شود؟")
-                : confirm("آیا میخواهید این پست منتشر شود؟");
+                ? confirm("آیا می‌خواهید این پست غیرفعال شود؟")
+                : confirm("آیا می‌خواهید این پست منتشر شود؟");
             if (confirmation) {
+                toggle.classList.add('loading');
                 fetch(`{% url 'post_toggle_publish' 0 %}`.replace('0', postId), {
                     method: 'POST',
                     headers: {
@@ -64,10 +289,11 @@
                 .then(data => {
                     if (data.success) {
                         toggle.setAttribute('data-is-published', data.is_published);
-                        toggle.querySelector('i').classList.toggle('far');
-                        toggle.querySelector('i').classList.toggle('fas');
-                        toggle.querySelector('i').classList.toggle('fa-square');
-                        toggle.querySelector('i').classList.toggle('fa-check-square');
+                        const icon = toggle.querySelector('i');
+                        icon.classList.toggle('far', !data.is_published);
+                        icon.classList.toggle('fas', data.is_published);
+                        icon.classList.toggle('fa-square', !data.is_published);
+                        icon.classList.toggle('fa-check-square', data.is_published);
                         console.log(`Publish status for post ${postId} updated to ${data.is_published}`);
                     } else {
                         alert('خطا در تغییر وضعیت انتشار: ' + (data.error || 'خطا ناشناخته'));
@@ -76,11 +302,9 @@
                 .catch(error => {
                     console.error('Error:', error);
                     alert('خطا در ارتباط با سرور');
-                    // Revert the toggle if the request fails
-                    toggle.querySelector('i').classList.toggle('far');
-                    toggle.querySelector('i').classList.toggle('fas');
-                    toggle.querySelector('i').classList.toggle('fa-square');
-                    toggle.querySelector('i').classList.toggle('fa-check-square');
+                })
+                .finally(() => {
+                    toggle.classList.remove('loading');
                 });
             }
         });
