@@ -51,14 +51,17 @@
 <body>
 
     <!-- Top Bar -->
-    <div class="topbar d-flex justify-content-between align-items-center">
-        <span>سلام {{ request.user.first_name|default:request.user.username }}</span>
-        <a href="{% url 'logout' %}" class="text-white text-decoration-none">خروج</a>
-    </div>
+<div class="topbar d-flex justify-content-between align-items-center">
+    <span>سلام {{ request.user.first_name|default:request.user.username }}</span>
+    <form method="post" action="{% url 'logout' %}" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="text-white text-decoration-none" style="background: none; border: none; cursor: pointer;">خروج</button>
+    </form>
+</div>
 
     <!-- Sidebar -->
     <div class="sidebar">
-        <a href="#" class="active"><i class="fas fa-tachometer-alt"></i> پیشخوان</a>
+        <a href="{% url 'dashboard' %}" class="active"><i class="fas fa-tachometer-alt"></i> پیشخوان</a>
         <a href="{% url 'post_list' %}"><i class="fas fa-edit"></i> نوشته‌ها <span class="badge bg-secondary">مقالات</span></a>
         <a href="#"><i class="fas fa-image"></i> رسانه</a>
         <a href="#"><i class="fas fa-copy"></i> برگه‌ها</a>

@@ -18,12 +18,28 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.conf.urls import handler404
+from django.shortcuts import render
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('content_management.urls')),
-    path('', include('accounts.urls')),  # صفحه اصلی برای اپ accounts
-    path('', include('blog.urls')),  # مسیر جداگانه برای اپ blog
-    path('ckeditor5/', include('django_ckeditor_5.urls')),
 
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('', include('accounts.urls')),  # صفحه اصلی، ثبت‌نام، ورود و ... حساب کاربری
+
+    path('blog/', include('blog.urls')),  # مسیر همه‌ی صفحات مربوط به بلاگ
+
+    path('dashboard/', include('content_management.urls')),  # پنل مدیریت محتوا
+
+    path('ckeditor5/', include('django_ckeditor_5.urls')),
+]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+
+
+def custom_page_not_found_view(request, exception):
+    return render(request, "errors/404.html", status=404)
+
+
+handler404 = custom_page_not_found_view

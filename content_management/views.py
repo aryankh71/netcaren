@@ -1,29 +1,37 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from blog.models import Post
 from blog.forms import PostForm
 import json
 from django.views.decorators.csrf import csrf_exempt
-
+from .models import *
 
 
 def staff_required(user):
     return user.is_authenticated and (user.is_staff or user.is_superuser)
 
-@login_required
-@user_passes_test(staff_required)
+
+def check_staff_user(request):
+    user = request.user
+    if not (user.is_authenticated and (user.is_staff or user.is_superuser)):
+        return False
+    return True
+
+
 def post_list(request):
+    if not check_staff_user(request):
+        return render(request, 'errors/404.html', status=404)
     posts = Post.objects.all()
     return render(request, 'dashboard/posts/post_list.html', {'posts': posts})
 
-@login_required
-@user_passes_test(staff_required)
+
 @require_POST
 def post_toggle_publish(request, pk):
+    if not check_staff_user(request):
+        return JsonResponse({'success': False, 'error': 'دسترسی غیرمجاز'}, status=403)
     try:
         post = Post.objects.get(pk=pk)
         post.is_published = not post.is_published
@@ -36,9 +44,11 @@ def post_toggle_publish(request, pk):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
-@login_required
-@user_passes_test(staff_required)
+
 def post_create(request):
+    if not check_staff_user(request):
+        return render(request, 'errors/404.html', status=404)
+
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
@@ -51,7 +61,7 @@ def post_create(request):
             elif 'draft' in request.POST:
                 post.is_published = False
                 if not post.published_at:
-                    post.published_at = timezone.now()  # تنظیم برای فیلد اجباری
+                    post.published_at = timezone.now()
             post.save()
             messages.success(request, 'مقاله با موفقیت ایجاد شد.')
             return redirect('post_list')
@@ -63,15 +73,17 @@ def post_create(request):
         form = PostForm()
     return render(request, 'dashboard/posts/post_form.html', {'form': form})
 
-@login_required
-@user_passes_test(staff_required)
+
 def post_update(request, pk):
+    if not check_staff_user(request):
+        return render(request, 'errors/404.html', status=404)
+
     post = get_object_or_404(Post, pk=pk)
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES, instance=post)
         if form.is_valid():
             post = form.save(commit=False)
-            post.author = request.user  # تنظیم نویسنده
+            post.author = request.user
             if 'publish' in request.POST:
                 post.is_published = True
                 if not post.published_at:
@@ -79,21 +91,23 @@ def post_update(request, pk):
             elif 'draft' in request.POST:
                 post.is_published = False
                 if not post.published_at:
-                    post.published_at = timezone.now()  # تنظیم برای فیلد اجباری
+                    post.published_at = timezone.now()
             post.save()
             messages.success(request, 'مقاله با موفقیت ویرایش شد.')
             return redirect('post_list')
         else:
             messages.error(request, 'خطایی در فرم وجود دارد. لطفاً فیلدها را بررسی کنید.')
-            print(form.errors)  # برای دیباگ
+            print(form.errors)
             print("User:", request.user, "Is authenticated:", request.user.is_authenticated)
     else:
         form = PostForm(instance=post)
     return render(request, 'dashboard/posts/post_form.html', {'form': form, 'post': post})
 
-@login_required
-@user_passes_test(staff_required)
+
 def post_delete(request, pk):
+    if not check_staff_user(request):
+        return render(request, 'errors/404.html', status=404)
+
     post = get_object_or_404(Post, pk=pk)
     if request.method == 'POST':
         post.delete()
@@ -101,9 +115,12 @@ def post_delete(request, pk):
         return redirect('post_list')
     return render(request, 'dashboard/posts/post_confirm_delete.html', {'post': post})
 
+
 @csrf_exempt
-@login_required
 def post_bulk_action(request):
+    if not check_staff_user(request):
+        return JsonResponse({'success': False, 'error': 'دسترسی غیرمجاز'}, status=403)
+
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -124,10 +141,8 @@ def post_bulk_action(request):
     return JsonResponse({'success': False, 'error': 'درخواست نامعتبر'}, status=400)
 
 
-
-
-
-@login_required
-@user_passes_test(staff_required)
 def dashboard_home(request):
+    user = request.user
+    if not (user.is_authenticated and (user.is_staff or user.is_superuser)):
+        return render(request, 'errors/404.html', status=404)
     return render(request, 'dashboard/dashboard.html')
