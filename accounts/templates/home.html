@@ -151,6 +151,12 @@
                 font-size: 1.2rem;
             }
         }
+
+        .products-section {
+            background-color: #ffe6f0; /* صورتی روشن */
+            padding: 20px;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -187,6 +193,43 @@
 </div>
 
 <div class="container">
+
+    <!-- محصولات -->
+    <h2 class="mb-4 mt-5">🛍️ محصولات ما</h2>
+    {% if products %}
+    <div class="products-section">
+        <div class="swiper mySwiper-products">
+            <div class="swiper-wrapper">
+                {% for product in products %}
+                    <div class="swiper-slide">
+                        <div class="card shadow-sm" style="height: 460px; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div class="card-body" style="display: flex; flex-direction: column; flex: 1;">
+                                <h5 class="card-title" style="font-size: 1.1rem; margin-bottom: 0.5rem;" title="{{ product.name }}">{{ product.name|truncatewords:3 }}</h5>
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-img" style="width: 100%; height: 140px; object-fit: cover; border-radius: 0.25rem; margin-bottom: 0.75rem;">
+                                {% else %}
+                                    <img src="{% static 'images/empty-article.png' %}" alt="تصویر پیش‌فرض محصول" class="card-img" style="width: 100%; height: 140px; object-fit: cover; border-radius: 0.25rem; margin-bottom: 0.75rem;">
+                                {% endif %}
+                                <p class="card-text content" style="flex-grow: 1; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem; margin-bottom: 0.5rem;">
+                                    {{ product.description|safe|truncatewords:15 }}
+                                </p>
+                            </div>
+                            <div class="card-footer p-3" style="margin-top: auto;">
+                                <p class="text-muted mb-2" style="font-size: 0.875rem;">
+                                    <small>قیمت: {{ product.price|default:"نامشخص" }} تومان</small>
+                                </p>
+                                <a href="{% url 'product_detail' product.slug %}" class="btn btn-outline-primary btn-sm" style="font-size: 0.875rem; width: 100%;">جزئیات محصول</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </div>
+    {% else %}
+        <p class="text-muted mt-3">هیچ محصولی برای نمایش وجود ندارد.</p>
+    {% endif %}
 
     <!-- جدیدترین مقالات -->
     <h2 class="mb-4">📚 جدیدترین مقالات</h2>
@@ -288,6 +331,20 @@
             clickable: true,
         },
         rtl: true,
+    });
+
+    new Swiper('.mySwiper-products', {
+        slidesPerView: 'auto',
+        spaceBetween: 20,
+        pagination: {
+            el: '.mySwiper-products .swiper-pagination',
+            clickable: true,
+        },
+        rtl: true,
+        autoplay: {
+            delay: 3000,
+            disableOnInteraction: false,
+        },
     });
 
     setTimeout(function () {

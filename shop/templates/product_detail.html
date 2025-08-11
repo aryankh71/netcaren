@@ -1,32 +1,154 @@
-{% extends 'panel.html' %}
-{% block title %}مدیریت محصولات{% endblock %}
-
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ product.brand }} - {{ product.name }} - جزئیات محصول{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3">مدیریت محصولات</h1>
-    <a href="{% url 'product_create' %}" class="btn btn-primary">+ افزودن محصول</a>
-</div>
+<div class="container my-5">
+    <div class="product-container p-4 bg-white rounded shadow-sm">
+        <div class="row align-items-center gy-4">
+            <!-- تصویر محصول -->
+            <div class="col-md-5">
+                <div class="product-image-wrapper position-relative" style="padding-top: 140%; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image position-absolute top-0 start-50 translate-middle-x w-100 h-100" style="object-fit: cover; border-radius: 12px;">
+                    {% else %}
+                        <img src="{% static 'images/empty-article.png' %}" alt="بدون تصویر" class="product-image position-absolute top-0 start-50 translate-middle-x w-100 h-100" style="object-fit: cover; border-radius: 12px;">
+                    {% endif %}
+                </div>
+            </div>
 
-<div class="row">
-    {% for product in products %}
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 shadow-sm">
-            {% if product.image %}
-            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
-            {% endif %}
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title">{{ product.name }}</h5>
-                <p class="card-text text-muted">{{ product.price }} تومان</p>
-                <div class="mt-auto">
-                    <a href="{% url 'product_detail' product.slug %}" class="btn btn-sm btn-outline-primary">مشاهده</a>
-                    <a href="{% url 'product_update' product.slug %}" class="btn btn-sm btn-outline-warning">ویرایش</a>
-                    <a href="{% url 'product_delete' product.slug %}" class="btn btn-sm btn-outline-danger">حذف</a>
+            <!-- اطلاعات محصول -->
+            <div class="col-md-7 d-flex flex-column justify-content-center">
+                <div class="product-brand text-muted mb-1 fs-5">{{ product.brand|default:"برند نامشخص" }}</div>
+                <h1 class="product-title fw-bold mb-3 fs-2">{{ product.name }}</h1>
+
+                <div class="product-meta mb-4">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <span class="price fs-4 text-success fw-semibold">قیمت: {{ product.price|default:"نامشخص" }} تومان</span>
+                        {% if product.discount %}
+                            <span class="discount fs-5 text-danger fw-semibold">تخفیف: {{ product.discount }}%</span>
+                        {% endif %}
+                        <span class="stock fs-5 fw-medium {% if product.stock > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {% if product.stock > 0 %}موجود{% else %}ناموجود{% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="product-actions mb-4 d-flex gap-3 flex-wrap">
+                    <button class="btn btn-success btn-lg px-4 py-2 shadow-sm hover-scale">افزودن به سبد خرید</button>
+                    <a href="{% url 'home' %}" class="btn btn-primary btn-lg px-4 py-2 shadow-sm hover-scale">بازگشت به خانه</a>
+                </div>
+
+                <div class="product-description fs-5 text-secondary mt-auto border-top pt-3">
+                    {{ product.description|safe }}
                 </div>
             </div>
         </div>
+
+        <!-- بخش کامنت‌ها -->
+        <div class="comments-section mt-5 p-4 bg-light rounded">
+            <h3 class="mb-4">نظرات ({{ comments_count }})</h3>
+            {% for comment in comments %}
+                <div class="comment {% if comment.parent %}reply{% endif %} p-3 mb-3 rounded bg-white shadow-sm" id="comment-{{ comment.id }}">
+                    <div class="comment-meta d-flex justify-content-between align-items-center mb-2 small text-muted">
+                        <strong>{{ comment.author.username|default:"ناشناس" }}</strong>
+                        <span>{{ comment.created_at|date:"Y/m/d H:i" }}</span>
+                        {% if user.is_authenticated %}
+                            <a href="#" class="reply-btn text-success fw-semibold" onclick="showReplyForm({{ comment.id }})">پاسخ</a>
+                        {% endif %}
+                    </div>
+                    <div class="comment-body fs-6 text-dark">{{ comment.body }}</div>
+
+                    {% for reply in comment.replies.all %}
+                        <div class="comment reply p-3 mt-3 rounded bg-white shadow-sm" id="comment-{{ reply.id }}" style="margin-right: 30px;">
+                            <div class="comment-meta d-flex justify-content-between align-items-center mb-2 small text-muted">
+                                <strong>{{ reply.author.username|default:"ناشناس" }}</strong>
+                                <span>{{ reply.created_at|date:"Y/m/d H:i" }}</span>
+                            </div>
+                            <div class="comment-body fs-6 text-dark">{{ reply.body }}</div>
+                        </div>
+                    {% endfor %}
+
+                    {% if user.is_authenticated %}
+                        <div class="reply-form mt-3" id="reply-form-{{ comment.id }}" style="display: none;">
+                            <form class="comment-form" action="{% url 'add_comment' post_slug=product.slug parent_id=comment.id %}" method="post">
+                                {% csrf_token %}
+                                {{ comment_form.as_p }}
+                                <div class="error-message text-danger small mt-1"></div>
+                                <button type="submit" class="btn btn-success btn-sm mt-2">ارسال پاسخ</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p class="text-muted">هنوز نظری ثبت نشده است.</p>
+            {% endfor %}
+
+            {% if user.is_authenticated %}
+                <div class="comment-form-container mt-4">
+                    <h4 class="mb-3">ارسال نظر</h4>
+                    <form class="comment-form" action="{% url 'add_comment' post_slug=product.slug %}" method="post">
+                        {% csrf_token %}
+                        {{ comment_form.as_p }}
+                        <div class="error-message text-danger small mt-1" id="error-main"></div>
+                        <button type="submit" class="btn btn-success mt-2">ارسال نظر</button>
+                    </form>
+                </div>
+            {% else %}
+                <p class="text-muted mt-4">برای ارسال نظر، لطفاً <a href="{% url 'login' %}">وارد شوید</a>.</p>
+            {% endif %}
+        </div>
     </div>
-    {% empty %}
-    <p>هیچ محصولی یافت نشد.</p>
-    {% endfor %}
 </div>
+
+<style>
+    .hover-scale {
+        transition: transform 0.3s ease;
+    }
+    .hover-scale:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    }
+</style>
+
+<script>
+    function showReplyForm(commentId) {
+        document.querySelectorAll('.reply-form').forEach(form => {
+            form.style.display = 'none';
+        });
+        const replyForm = document.getElementById(`reply-form-${commentId}`);
+        if(replyForm) {
+            replyForm.style.display = 'block';
+        }
+    }
+
+    document.querySelectorAll('.comment-form').forEach(form => {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const errorDiv = this.querySelector('.error-message');
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => { throw new Error(data.error); });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // افزودن کامنت جدید به لیست (برای ساده‌سازی بدون جزئیات بیشتر)
+                location.reload();  // ساده‌ترین روش: بارگذاری مجدد صفحه پس از ارسال موفق
+            })
+            .catch(error => {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = error.message;
+            });
+        });
+    });
+</script>
 {% endblock %}

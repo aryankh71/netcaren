@@ -10,6 +10,7 @@ from blog.models import Post
 from django.utils.timezone import now
 from django.contrib.auth import login
 from django.utils import timezone
+from shop.models import *
 
 
 
@@ -32,21 +33,19 @@ def register_view(request):
 
 def home_view(request):
     today = timezone.now().date()
-    # مقالات امروز (برای بخش جدیدترین مقالات)
-    latest_posts = Post.objects.filter(
-        is_published=True,
-        published_at__date=today
-    ).order_by('-published_at')
-    # همه مقالات منتشرشده
+    latest_posts = Post.objects.filter(is_published=True, published_at__date=today).order_by('-published_at')
     all_posts = Post.objects.filter(is_published=True).order_by('-published_at')
+    products = Product.objects.filter(is_available=True).order_by('-created_at')  # فرض بر این است مدل Product داری
 
     context = {
         'login_form': AuthenticationForm(),
         'register_form': UserCreationForm(),
         'latest_posts': latest_posts,
         'all_posts': all_posts,
+        'products': products,
     }
     return render(request, 'home.html', context)
+
 
 
 @login_required

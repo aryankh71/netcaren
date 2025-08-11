@@ -1,7 +1,7 @@
 {% extends 'panel.html' %}
 {% block content %}
 <style>
-    /* همان استایل های پنل و وردپرس */
+    /* استایل شبیه وردپرس */
     .wrap {
         max-width: 1200px;
         margin: 20px;
@@ -38,7 +38,6 @@
     .wp-header-end {
         border-bottom: 1px solid #ddd;
         margin: 0 0 20px;
-        padding: 0;
         height: 1px;
     }
     .table-container {
@@ -92,10 +91,6 @@
     .action-buttons a.delete:hover {
         color: #b32d2e;
         text-decoration: underline;
-    }
-    .action-buttons i {
-        margin-left: 4px;
-        font-size: 14px;
     }
     .availability-toggle {
         cursor: pointer;
@@ -186,20 +181,23 @@
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th data-sort="title">نام محصول <i class="fas fa-sort"></i></th>
-                    <th data-sort="sku">کد محصول <i class="fas fa-sort"></i></th>
+                    <th data-sort="name">نام محصول <i class="fas fa-sort"></i></th>
+                    <th data-sort="brand">برند <i class="fas fa-sort"></i></th>
                     <th data-sort="price">قیمت <i class="fas fa-sort"></i></th>
-                    <th data-sort="is_available">موجودی <i class="fas fa-sort"></i></th>
-                    <th data-sort="created_at">تاریخ اضافه شدن <i class="fas fa-sort"></i></th>
+                    <th data-sort="stock">موجودی سیستمی <i class="fas fa-sort"></i></th>
+                    <th data-sort="is_available">وضعیت موجودی <i class="fas fa-sort"></i></th>
+                    <th data-sort="category">دسته‌بندی <i class="fas fa-sort"></i></th>
+                    <th data-sort="created_at">تاریخ ایجاد <i class="fas fa-sort"></i></th>
                     <th>عملیات</th>
                 </tr>
             </thead>
             <tbody>
                 {% for product in products %}
                 <tr>
-                    <td>{{ product.title }}</td>
-                    <td>{{ product.sku }}</td>
-                    <td>{{ price|floatformat:2 }}</td>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.brand }}</td>
+                    <td>{{ product.price|floatformat:2 }}</td>
+                    <td>{{ product.stock }}</td>
                     <td>
                         <span class="availability-toggle" data-product-id="{{ product.pk }}" data-is-available="{{ product.is_available|lower }}">
                             {% if product.is_available %}
@@ -209,15 +207,22 @@
                             {% endif %}
                         </span>
                     </td>
+                    <td>
+                            {% if product.category %}
+                            {{ product.category.name }}
+                                    {% else %}
+                                        ---
+                                    {% endif %}
+                    </td>
                     <td>{{ product.created_at|date:"Y-m-d H:i" }}</td>
                     <td class="action-buttons">
-                        <a href="{% url 'product_update' product.pk %}" class="edit"><i class="fas fa-edit"></i> ویرایش</a>
-                        <a href="{% url 'product_delete' product.pk %}" class="delete"><i class="fas fa-trash"></i> حذف</a>
+                            <a href="{% url 'product_update' product.slug %}" class="edit"><i class="fas fa-edit"></i> ویرایش</a>
+                            <a href="{% url 'product_delete' product.slug %}" class="delete"><i class="fas fa-trash"></i> حذف</a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" style="text-align: center;">هیچ محصولی یافت نشد.</td>
+                    <td colspan="8" style="text-align: center;">هیچ محصولی یافت نشد.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -253,7 +258,7 @@
 </div>
 
 <script>
-    // Sorting
+    // مرتب‌سازی
     document.querySelectorAll('th[data-sort]').forEach(header => {
         header.addEventListener('click', () => {
             const column = header.getAttribute('data-sort');
@@ -265,7 +270,7 @@
         });
     });
 
-    // Availability Toggle
+    // تغییر وضعیت موجودی
     document.querySelectorAll('.availability-toggle').forEach(toggle => {
         toggle.addEventListener('click', () => {
             if (toggle.classList.contains('loading')) return;
@@ -293,9 +298,8 @@
                         icon.classList.toggle('fas', data.is_available);
                         icon.classList.toggle('fa-square', !data.is_available);
                         icon.classList.toggle('fa-check-square', data.is_available);
-                        console.log(`Availability status for product ${productId} updated to ${data.is_available}`);
                     } else {
-                        alert('خطا در تغییر وضعیت موجودی: ' + (data.error || 'خطا ناشناخته'));
+                        alert('خطا در تغییر وضعیت موجودی: ' + (data.error || 'خطای ناشناخته'));
                     }
                 })
                 .catch(error => {
