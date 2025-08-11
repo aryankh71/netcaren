@@ -30,6 +30,8 @@ urlpatterns = [
 
     path('dashboard/', include('content_management.urls')),  # پنل مدیریت محتوا
 
+    path('shop/', include('shop.urls')),
+
     path('ckeditor5/', include('django_ckeditor_5.urls')),
 ]
 if settings.DEBUG:
