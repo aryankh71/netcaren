@@ -6,6 +6,7 @@
   <meta charset="UTF-8">
   <title>{% block title %}وبسایت من{% endblock %}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon" />
 
   <!-- فونت وزیر -->
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet">
@@ -324,235 +325,201 @@
             </form>
           </li>
           <li class="nav-item">
-            <a class="nav-link fw-bold" href="{% url 'account' %}">{{ user.username }}</a>
+            <span class="nav-link text-secondary fw-bold">سلام، {{ user.get_full_name|default:user.username }}</span>
           </li>
         {% else %}
           <li class="nav-item">
-            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">ورود</a>
+            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#loginModal">ورود</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#registerModal">ثبت‌نام</a>
+            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#registerModal">ثبت‌نام</a>
           </li>
         {% endif %}
       </ul>
     </div>
 
-    <!-- دکمه‌های وسط -->
-    <div class="nav-middle d-none d-lg-block">
-      <ul class="navbar-nav flex-row">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="postDropdown" role="button" onclick="toggleDropdown(event)">
-            مقالات
-          </a>
-          <ul class="dropdown-menu text-end mt-2" aria-labelledby="postDropdown">
-            <li><a class="dropdown-item" href="#">مشاهده همه</a></li>
-            <li><a class="dropdown-item" href="#">جدیدترین‌ها</a></li>
-          </ul>
-        </li>
-        <li class="nav-item ms-3">
-          <a class="nav-link" href="#">درباره من</a>
-        </li>
-      </ul>
-    </div>
-
+    <!-- منوی وسط با آیتم‌ها -->
+    <ul class="navbar-nav nav-middle">
+      <li class="nav-item dropdown" onmouseover="showDropdown(this)" onmouseout="hideDropdown(this)">
+        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">محصولات</a>
+        <ul class="dropdown-menu">
+          <li><a href="#" class="dropdown-item">الکترونیک</a></li>
+          <li><a href="#" class="dropdown-item">لباس</a></li>
+          <li><a href="#" class="dropdown-item">کتاب‌ها</a></li>
+        </ul>
+      </li>
+      <li class="nav-item"><a href="#" class="nav-link">بلاگ</a></li>
+      <li class="nav-item"><a href="#" class="nav-link">درباره ما</a></li>
+      <li class="nav-item"><a href="#" class="nav-link">تماس با ما</a></li>
+    </ul>
   </div>
 </nav>
 
-<!-- محتوای اصلی -->
-<main class="container py-4">
+
+  <!-- بلاک محتوا برای بقیه صفحات -->
   {% block content %}
+  <!-- محتوای اضافی در اینجا می‌آید -->
   {% endblock %}
 </main>
+
+<!-- مودال ورود -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true" dir="rtl">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="loginModalLabel">ورود به حساب کاربری</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+        </div>
+        <div class="modal-body">
+          {{ login_form.non_field_errors }}
+          <div class="mb-3">
+            <label for="id_username" class="form-label">نام کاربری یا ایمیل</label>
+            {{ login_form.username }}
+          </div>
+          <div class="mb-3">
+            <label for="id_password" class="form-label">رمز عبور</label>
+            {{ login_form.password }}
+          </div>
+          <div class="mb-3 form-check">
+            {{ login_form.remember_me }}
+            <label class="form-check-label" for="id_remember_me">مرا به خاطر بسپار</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">ورود</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- مودال ثبت‌نام -->
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true" dir="rtl">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{% url 'register' %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="registerModalLabel">ثبت‌نام در سایت</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+        </div>
+        <div class="modal-body">
+          {{ register_form.non_field_errors }}
+          <div class="mb-3">
+            <label for="id_username_reg" class="form-label">نام کاربری</label>
+            {{ register_form.username }}
+          </div>
+          <div class="mb-3">
+            <label for="id_email" class="form-label">ایمیل</label>
+            {{ register_form.email }}
+          </div>
+          <div class="mb-3">
+            <label for="id_password1" class="form-label">رمز عبور</label>
+            {{ register_form.password1 }}
+          </div>
+          <div class="mb-3">
+            <label for="id_password2" class="form-label">تکرار رمز عبور</label>
+            {{ register_form.password2 }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">ثبت‌نام</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <!-- فوتر -->
 <footer>
   <div class="footer-container">
     <div class="footer-row">
       <div class="footer-column">
-        <h5>لینک‌های مفید</h5>
+        <h5>خدمات مشتریان</h5>
         <ul>
-          <li><a href="{% url 'home' %}">خانه</a></li>
-          <li><a href="#">درباره من</a></li>
-          <li><a href="#">مقالات</a></li>
+          <li><a href="#">سوالات متداول</a></li>
+          <li><a href="#">ارسال و بازگشت</a></li>
+          <li><a href="#">شرایط استفاده</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h5>دسترسی سریع</h5>
+        <ul>
+          <li><a href="#">خانه</a></li>
+          <li><a href="#">محصولات</a></li>
+          <li><a href="#">بلاگ</a></li>
           <li><a href="#">تماس با ما</a></li>
         </ul>
       </div>
       <div class="footer-column">
-        <h5>ما را دنبال کنید</h5>
-        <div class="footer-social">
-          <a href="#" title="توییتر">𝕏</a>
-          <a href="#" title="اینستاگرام">📷</a>
-          <a href="#" title="لینکدین">💼</a>
-          <a href="#" title="تلگرام">📩</a>
-        </div>
-      </div>
-      <div class="footer-column">
         <h5>تماس با ما</h5>
-        <ul>
-          <li>ایمیل: example@email.com</li>
-          <li>تلفن: ۱۲۳۴۵۶۷۸۹۰</li>
-          <li>آدرس: تهران، ایران</li>
-        </ul>
+        <p>تهران، ایران</p>
+        <p>تلفن: ۰۲۱-۱۲۳۴۵۶۷۸</p>
+        <p>ایمیل: info@example.com</p>
+        <div class="footer-social">
+          <a href="#" title="اینستاگرام">📷</a>
+          <a href="#" title="تلگرام">✈️</a>
+          <a href="#" title="واتساپ">📱</a>
+        </div>
       </div>
     </div>
     <div class="footer-bottom">
-      &copy; ۱۴۰۴ وبسایت من | تمامی حقوق محفوظ است
+      © تمامی حقوق برای وبسایت من محفوظ است.
     </div>
   </div>
 </footer>
 
-<!-- مدال‌ها برای ورود و ثبت‌نام -->
-{% if not user.is_authenticated %}
-  <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">ورود به حساب کاربری</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <form method="post" action="{% url 'login' %}?next={{ request.path }}">
-            {% csrf_token %}
-            <div class="mb-3">
-              {{ login_form.username.label_tag }}
-              {{ login_form.username|add_attrs:"form-control,placeholder:نام کاربری" }}
-              {% for error in login_form.username.errors %}
-                <div class="text-danger small">{{ error }}</div>
-              {% endfor %}
-            </div>
-            <div class="mb-3">
-              {{ login_form.password.label_tag }}
-              {{ login_form.password|add_attrs:"form-control,placeholder:رمز عبور" }}
-              {% for error in login_form.password.errors %}
-                <div class="text-danger small">{{ error }}</div>
-              {% endfor %}
-            </div>
-            <div class="text-end">
-              <button type="submit" class="btn btn-primary">ورود</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">ثبت‌نام</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <form method="post" action="{% url 'register' %}?next={{ request.path }}">
-            {% csrf_token %}
-            {% for field in register_form %}
-              <div class="mb-3">
-                {{ field.label_tag }}
-                {{ field|add_attrs:"form-control,placeholder:"|add_placeholder:field.label }}
-                {% for error in field.errors %}
-                  <div class="text-danger small">{{ error }}</div>
-                {% endfor %}
-              </div>
-            {% endfor %}
-            <div class="text-end">
-              <button type="submit" class="btn btn-success">ثبت‌نام</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-{% endif %}
-
-<!-- Bootstrap Script -->
+<!-- اسکریپت‌های بوت‌استرپ -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-  function toggleDropdown(event) {
-    event.preventDefault();
-    const dropdown = event.target.nextElementSibling;
-    const isOpen = dropdown.classList.contains('show');
-
-    document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-      if (menu !== dropdown) {
-        menu.classList.remove('show');
-      }
-    });
-
-    if (!isOpen) {
-      dropdown.classList.add('show');
-    } else {
-      dropdown.classList.remove('show');
-    }
+  // نمایش و مخفی کردن منوی کشویی در ناوبری
+  function showDropdown(el) {
+    el.querySelector('.dropdown-menu').classList.add('show');
+  }
+  function hideDropdown(el) {
+    el.querySelector('.dropdown-menu').classList.remove('show');
   }
 
+  // نمایش و مخفی کردن فرم جستجو
   function toggleSearch() {
-    const searchForm = document.querySelector('.search-form');
-    const searchResults = document.querySelector('.search-results');
-    searchForm.classList.toggle('show');
-    if (!searchForm.classList.contains('show')) {
-      searchResults.classList.remove('show');
+    const form = document.getElementById('searchForm');
+    const results = document.getElementById('searchResults');
+    form.classList.toggle('show');
+    results.classList.remove('show');
+    if (form.classList.contains('show')) {
+      form.querySelector('input').focus();
     }
   }
 
-  document.addEventListener('click', function (event) {
-    const dropdowns = document.querySelectorAll('.dropdown-menu');
-    const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-    const searchContainer = document.querySelector('.search-container');
-    const searchForm = document.querySelector('.search-form');
-    const searchButton = document.querySelector('.search-button');
-    let isClickInside = false;
-
-    dropdownToggles.forEach(toggle => {
-      if (toggle.contains(event.target)) isClickInside = true;
-    });
-    dropdowns.forEach(dropdown => {
-      if (dropdown.contains(event.target)) isClickInside = true;
-    });
-
-    if (!isClickInside) {
-      dropdowns.forEach(dropdown => dropdown.classList.remove('show'));
-    }
-
-    if (searchContainer && !searchContainer.contains(event.target) && !searchButton.contains(event.target)) {
-      searchForm.classList.remove('show');
-      document.querySelector('.search-results').classList.remove('show');
+  // بسته شدن فرم جستجو اگر کلیک خارج شد
+  document.addEventListener('click', function(e) {
+    const form = document.getElementById('searchForm');
+    const button = document.querySelector('.search-button');
+    if (!form.contains(e.target) && !button.contains(e.target)) {
+      form.classList.remove('show');
+      document.getElementById('searchResults').classList.remove('show');
     }
   });
 
-  // AJAX برای جستجو
-  document.addEventListener('DOMContentLoaded', function () {
-    const searchForm = document.querySelector('#searchForm');
-    const searchInput = document.querySelector('.search-input');
-    const searchResults = document.querySelector('#searchResults');
-
-    searchInput.addEventListener('input', function () {
-      const query = searchInput.value;
-      if (query.length > 0) {
-        fetch(`{% url 'search' %}?q=${encodeURIComponent(query)}`)
-          .then(response => response.json())
-          .then(data => {
-            searchResults.innerHTML = '';
-            if (data.results.length > 0) {
-              data.results.forEach(result => {
-                const div = document.createElement('div');
-                div.className = 'search-result-item';
-                div.innerHTML = `<a href="${result.url}">${result.title}</a>`;
-                searchResults.appendChild(div);
-              });
-              searchResults.classList.add('show');
-            } else {
-              searchResults.innerHTML = '<div class="search-result-item">نتیجه‌ای یافت نشد</div>';
-              searchResults.classList.add('show');
-            }
-          })
-          .catch(error => console.error('Error:', error));
+  // جستجوی زنده (مثال ساده)
+  const searchInput = document.querySelector('.search-input');
+  const searchResults = document.getElementById('searchResults');
+  if(searchInput) {
+    searchInput.addEventListener('input', function() {
+      const query = this.value.trim();
+      if(query.length > 2) {
+        // اینجا باید درخواست AJAX به سرور ارسال شود (مثال ساده برای دمو)
+        searchResults.innerHTML = '<div class="search-result-item">نتایج جستجو برای <b>' + query + '</b></div>';
+        searchResults.classList.add('show');
       } else {
-        searchResults.innerHTML = '';
         searchResults.classList.remove('show');
       }
     });
-  });
+  }
 </script>
+
 </body>
 </html>

@@ -40,7 +40,7 @@
             position: relative;
             border-radius: 10px;
         }
-        .hero-swiper .swiper-slide::before {
+        {% comment %} .hero-swiper .swiper-slide::before {
             content: '';
             position: absolute;
             top: 0;
@@ -50,7 +50,7 @@
             background: rgba(0, 0, 0, 0.4);
             z-index: 1;
             border-radius: 10px;
-        }
+        } {% endcomment %}
         .hero-swiper .swiper-slide-content {
             position: relative;
             z-index: 2;
@@ -175,17 +175,11 @@
 <div class="hero-swiper">
     <div class="swiper mySwiper-hero">
         <div class="swiper-wrapper">
-            <div class="swiper-slide" style="background-image: url('{% static 'images/Aurora_banner_1.jpg' %}');">
-                <div class="swiper-slide-content">
-                    <h3>هر کلیک، یه قدم به جلو</h3>
-                    <p>آخرین و بهترین محتواها را اینجا بخوانید.</p>
-                </div>
+            <div class="swiper-slide" style="background-image: url('{% static 'images/2264.jpg' %}');">
+                <!-- متن حذف شد -->
             </div>
-            <div class="swiper-slide" style="background-image: url('{% static 'images/ocean_banner.jpg' %}');">
-                <div class="swiper-slide-content">
-                    <h3>هر آنچه نیاز داری، با یک کلیک</h3>
-                    <p>با ما به روز بمانید.</p>
-                </div>
+            <div class="swiper-slide" style="background-image: url('{% static 'images/2617355.jpg' %}');">
+                <!-- متن حذف شد -->
             </div>
         </div>
         <div class="swiper-pagination"></div>
@@ -359,3 +353,4 @@
 </body>
 </html>
 {% endblock %}
+
