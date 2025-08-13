@@ -1,0 +1,22 @@
+<h1>سفارش #{{ order.id }}</h1>
+<p>وضعیت: {{ order.get_status_display }}</p>
+<p>تاریخ: {{ order.created_at }}</p>
+
+<table>
+    <tr>
+        <th>محصول</th>
+        <th>تعداد</th>
+        <th>قیمت واحد</th>
+        <th>جمع</th>
+    </tr>
+    {% for item in order.items.all %}
+    <tr>
+        <td>{{ item.product.name }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>{{ item.price }}</td>
+        <td>{{ item.get_total_price }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>جمع کل سفارش: {{ order.total_price }}</p>

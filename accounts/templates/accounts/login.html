@@ -9,10 +9,17 @@
   <style>
     body, html {
       height: 100%;
+      background-color: #f8f9fa;
+    }
+    .card {
+      border-radius: 12px;
+    }
+    .btn-primary, .btn-outline-secondary {
+      min-width: 120px;
     }
   </style>
 </head>
-<body class="bg-light d-flex align-items-center justify-content-center" dir="rtl">
+<body class="d-flex align-items-center justify-content-center" dir="rtl">
 
 <div class="container" style="max-width: 450px;">
   <div class="card shadow p-4">
@@ -39,8 +46,13 @@
         </div>
       {% endfor %}
 
-      <div class="text-center">
+      <div class="d-flex justify-content-center gap-2 mt-3">
         <button type="submit" class="btn btn-primary px-4 py-2">ورود</button>
+        <a href="{% url 'register' %}" class="btn btn-outline-secondary px-4 py-2">ثبت‌نام</a>
+      </div>
+
+      <div class="text-center mt-3">
+        <a href="{% url 'password_reset' %}" class="text-decoration-none small">رمز عبور خود را فراموش کرده‌اید؟</a>
       </div>
     </form>
 
