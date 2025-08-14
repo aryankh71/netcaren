@@ -22,7 +22,7 @@ from django.conf.urls import handler404
 from django.shortcuts import render
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
 
     path('', include('accounts.urls')),  # صفحه اصلی، ثبت‌نام، ورود و ... حساب کاربری
 

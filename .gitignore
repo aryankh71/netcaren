@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Django
+*.log
+*.pot
+db.sqlite3
+media/
+
+# Sensitive files
+.env
+*.rar
+*.sql
+*.tar
+
+# Static files
+staticfiles/
+
+# Other
+*.DS_Store
+inspect_output.json

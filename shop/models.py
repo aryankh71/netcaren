@@ -3,6 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.urls import reverse
 from slugify import slugify
+from django_ckeditor_5.fields import CKEditor5Field
 
 def persian_slugify(text):
     return slugify(text, separator="-", allow_unicode=True)
@@ -29,8 +30,14 @@ def generate_barcodes(product, quantity):
 class Product(models.Model):
     name = models.CharField(max_length=200, verbose_name="نام محصول")
     brand = models.CharField(max_length=100, verbose_name="برند")
-    slug = models.SlugField(max_length=200, unique=True, verbose_name="اسلاگ")
-    description = models.TextField(blank=True, verbose_name="توضیحات")
+    
+    slug = models.SlugField(
+    max_length=200, 
+    unique=True, 
+    verbose_name="اسلاگ", 
+    allow_unicode=True
+)
+    description = CKEditor5Field(verbose_name='توضیحات', config_name='default')
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="قیمت")
     stock = models.PositiveIntegerField(default=0, verbose_name="موجودی سیستمی")
     is_available = models.BooleanField(default=True, verbose_name="موجود است؟")
@@ -45,23 +52,33 @@ class Product(models.Model):
         verbose_name = "محصول"
         verbose_name_plural = "محصولات"
 
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
+def save(self, *args, **kwargs):
+    if not self.slug:
+        # ترکیب نام و برند و ساخت اسلاگ پایه
+        base_slug = persian_slugify(f"{self.name}-{self.brand}")
+        slug = base_slug
+        counter = 1
+        # بررسی یکتا بودن اسلاگ
+        while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        self.slug = slug
 
-        is_new = self.pk is None or not InventoryItem.objects.filter(product=self).exists()
-        if is_new or 'stock' in kwargs.get('update_fields', []):
-            current_items = InventoryItem.objects.filter(product=self, is_sold=False)
-            current_count = current_items.count()
-            if self.stock > current_count:
-                additional_barcodes = generate_barcodes(self, self.stock - current_count)
-                for barcode in additional_barcodes:
-                    InventoryItem.objects.create(product=self, barcode=barcode)
-            elif self.stock < current_count:
-                items_to_delete = current_items[self.stock:]
-                for item in items_to_delete:
-                    item.delete()
+    super().save(*args, **kwargs)
+
+    # مدیریت InventoryItem
+    is_new = self.pk is None or not InventoryItem.objects.filter(product=self).exists()
+    if is_new or 'stock' in kwargs.get('update_fields', []):
+        current_items = InventoryItem.objects.filter(product=self, is_sold=False)
+        current_count = current_items.count()
+        if self.stock > current_count:
+            additional_barcodes = generate_barcodes(self, self.stock - current_count)
+            for barcode in additional_barcodes:
+                InventoryItem.objects.create(product=self, barcode=barcode)
+        elif self.stock < current_count:
+            items_to_delete = current_items[self.stock:]
+            for item in items_to_delete:
+                item.delete()
 
     def get_absolute_url(self):
         return reverse('product_detail', kwargs={'slug': self.slug})

@@ -6,11 +6,12 @@ from django.http import JsonResponse
 from blog.forms import *
 from django.contrib.auth import get_user_model
 from django.db import transaction
-
+from content_management.decorators import staff_required_view
 
 
 
 # لیست محصولات
+@staff_required_view
 def product_list(request):
     products = Product.objects.all()
     return render(request, 'product_list.html', {'products': products})
@@ -39,7 +40,7 @@ def product_detail(request, slug):
         'comment_form': comment_form
     })
 # ایجاد محصول جدید
-
+@staff_required_view
 def product_create(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
@@ -54,20 +55,20 @@ def product_create(request):
     return render(request, 'product_form.html', {'form': form})
 
 # ویرایش محصول
-@login_required
+@staff_required_view
 def product_update(request, slug):
     product = get_object_or_404(Product, slug=slug)
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             form.save()
-            return redirect('product_detail', slug=product.slug)
+            return redirect('product_list')
     else:
         form = ProductForm(instance=product)
     return render(request, 'product_form.html', {'form': form})
 
 # حذف محصول
-@login_required
+@staff_required_view
 def product_delete(request, slug):
     product = get_object_or_404(Product, slug=slug)
     if request.method == 'POST':
@@ -76,6 +77,7 @@ def product_delete(request, slug):
     return render(request, 'product_confirm_delete.html', {'product': product})
 
 
+@staff_required_view
 def category_add(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
@@ -86,6 +88,8 @@ def category_add(request):
         form = CategoryForm()
     return render(request, 'category_form.html', {'form': form})
 
+
+@staff_required_view
 def tag_add(request):
     if request.method == 'POST':
         form = TagForm(request.POST)

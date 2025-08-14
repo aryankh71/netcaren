@@ -22,6 +22,12 @@
       <a href="#" class="list-group-item list-group-item-action sidebar-item" onclick="showSection('selected', this)">محصولات انتخاب شده</a>
       <a href="#" class="list-group-item list-group-item-action sidebar-item" onclick="showSection('favorites', this)">علاقه‌مندی‌ها</a>
       <a href="#" class="list-group-item list-group-item-action sidebar-item" onclick="showSection('cart', this)">سبد خرید</a>
+
+      {% if request.user.is_superuser or request.user.is_staff %}
+        <a href="#" class="list-group-item list-group-item-action sidebar-item text-danger">
+          پنل مدیریت سایت (ویژه)
+        </a>
+      {% endif %}
     </div>
   </div>
 
@@ -37,7 +43,6 @@
             {% csrf_token %}
 
             <div class="row">
-              {# نمایش فیلدهای غیر رمز (username، email، phone، birthday، gender) دو تا دو تا #}
               {% for field in form %}
                 {% if field.name != 'password1' and field.name != 'password2' %}
                   <div class="col-md-6 mb-3">
@@ -114,13 +119,11 @@
     color: #333;
     border-right: 4px solid transparent;
   }
-
   .sidebar-item:hover {
     background-color: #e9ecef;
     border-right: 4px solid #0d6efd;
     color: #000;
   }
-
   .sidebar-item.active {
     background-color: #dee2e6;
     font-weight: bold;
@@ -157,7 +160,6 @@
     };
     document.getElementById('card-title').innerText = titles[section];
 
-    // فعال‌سازی آیتم سایدبار
     document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
     if (element) element.classList.add('active');
   }
@@ -169,7 +171,6 @@
       passFields.style.display = 'block';
     } else {
       passFields.style.display = 'none';
-      // اگر فیلدها مخفی شدند، مقدارشان را خالی کن تا خطا نیاد
       const inputs = passFields.querySelectorAll('input');
       inputs.forEach(input => input.value = '');
     }
