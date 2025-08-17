@@ -115,96 +115,83 @@ def product_toggle_availability(request, pk):
 
 
 
-
-User = get_user_model()
-
-# نمایش سبد خرید
+@login_required
 def cart_view(request):
-    cart = request.session.get('cart', {})
+    cart, _ = Cart.objects.get_or_create(user=request.user)
     products = []
     total = 0
-    for product_id, item in cart.items():
-        product = get_object_or_404(Product, id=product_id)
+
+    for item in cart.items.all():
+        subtotal = item.product.price * item.quantity
         products.append({
-            'product': product,
-            'quantity': item['quantity'],
-            'subtotal': product.price * item['quantity']
+            'product': item.product,
+            'quantity': item.quantity,
+            'subtotal': subtotal
         })
-        total += product.price * item['quantity']
+        total += subtotal
 
     return render(request, 'cart.html', {'products': products, 'total': total})
 
+# -----------------------------
 # اضافه کردن محصول به سبد
+# -----------------------------
+@login_required
 def add_to_cart(request, product_id):
-    cart = request.session.get('cart', {})
-    if str(product_id) in cart:
-        cart[str(product_id)]['quantity'] += 1
-    else:
-        product = get_object_or_404(Product, id=product_id)
-        cart[str(product_id)] = {
-            'name': product.name,
-            'price': float(product.price),
-            'quantity': 1
-        }
-    request.session['cart'] = cart
+    cart, _ = Cart.objects.get_or_create(user=request.user)
+    product = get_object_or_404(Product, id=product_id)
+    cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+
+    if not created:
+        cart_item.quantity += 1
+        cart_item.save()
+
     return redirect('cart_view')
 
+# -----------------------------
 # حذف محصول از سبد
+# -----------------------------
+@login_required
 def remove_from_cart(request, product_id):
-    cart = request.session.get('cart', {})
-    if str(product_id) in cart:
-        del cart[str(product_id)]
-        request.session['cart'] = cart
+    cart, _ = Cart.objects.get_or_create(user=request.user)
+    item = cart.items.filter(product_id=product_id).first()
+    if item:
+        item.delete()
     return redirect('cart_view')
 
+# -----------------------------
 # تغییر تعداد محصول
+# -----------------------------
+@login_required
 def update_cart(request, product_id):
     if request.method == 'POST':
         quantity = int(request.POST.get('quantity', 1))
-        cart = request.session.get('cart', {})
-        if str(product_id) in cart:
-            cart[str(product_id)]['quantity'] = quantity
-            request.session['cart'] = cart
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+        cart_item = cart.items.filter(product_id=product_id).first()
+        if cart_item:
+            if quantity > 0:
+                cart_item.quantity = quantity
+                cart_item.save()
+            else:
+                cart_item.delete()
     return redirect('cart_view')
 
-
-def transfer_cart(request):
-    session_cart = request.session.get('cart', {})
-    if not session_cart:
-        return redirect('cart_view')
-
-    cart, created = Cart.objects.get_or_create(user=request.user)
-
-    for product_id, item in session_cart.items():
-        product = get_object_or_404(Product, id=product_id)
-        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
-        cart_item.quantity += item['quantity']
-        cart_item.save()
-
-    # پاک کردن session cart بعد از انتقال
-    del request.session['cart']
-
-    return redirect('cart_view')
-
-
-
-
-
-@login_required(login_url='/accounts/login/')
+# -----------------------------
+# تسویه حساب
+# -----------------------------
+@login_required
 @transaction.atomic
 def checkout(request):
-    cart, created = Cart.objects.get_or_create(user=request.user)
+    cart, _ = Cart.objects.get_or_create(user=request.user)
+    if not cart.items.exists():
+        return render(request, 'cart.html', {'error': "سبد خرید شما خالی است"})
 
     if request.method == 'POST':
-        if not cart.items.exists():
-            return render(request, 'shop/cart.html', {'error': "سبد خرید شما خالی است"})
-
         order = Order.objects.create(user=request.user)
         total = 0
 
         for item in cart.items.all():
-            if item.quantity <= 0 or item.quantity > item.product.stock:
-                return render(request, 'shop/cart.html', {'error': f"موجودی {item.product.name} کافی نیست"})
+            if item.quantity > item.product.stock:
+                return render(request, 'cart.html', {'error': f"موجودی {item.product.name} کافی نیست"})
 
             OrderItem.objects.create(
                 order=order,
@@ -220,14 +207,16 @@ def checkout(request):
         order.total_price = total
         order.save()
 
+        # پاک کردن آیتم‌های سبد بعد از ثبت سفارش
         cart.items.all().delete()
         return redirect('order_detail', order_id=order.id)
 
     return render(request, 'checkout.html', {'cart': cart})
 
-
-
-
+# -----------------------------
+# جزئیات سفارش
+# -----------------------------
+@login_required
 def order_detail(request, order_id):
-    order = Order.objects.get(id=order_id, user=request.user)
+    order = get_object_or_404(Order, id=order_id, user=request.user)
     return render(request, 'order_detail.html', {'order': order})

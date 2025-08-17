@@ -5,22 +5,25 @@
 
 {% if cart.items.all %}
 <table>
+  <tr>
+    <th>محصول</th>
+    <th>تعداد</th>
+    <th>قیمت واحد</th>
+    <th>جمع</th>
+  </tr>
+  {% for item in cart.items.all %}
     <tr>
-        <th>محصول</th>
-        <th>تعداد</th>
-        <th>قیمت واحد</th>
-        <th>جمع</th>
+      <td>{{ item.product.name }}</td>
+      <td>{{ item.quantity }}</td>
+      <td>{{ item.product.price }}</td>
+      <td>{{ item.product.price|mul:item.quantity }}</td>
     </tr>
-    {% for item in cart.items.all %}
+  {% empty %}
     <tr>
-        <td>{{ item.product.name }}</td>
-        <td>{{ item.quantity }}</td>
-        <td>{{ item.product.price }}</td>
-        <td>{{ item.product.price|mul:item.quantity }}</td>
+      <td colspan="4">سبد خرید شما خالی است.</td>
     </tr>
-    {% endfor %}
+  {% endfor %}
 </table>
-
 <form method="post">
     {% csrf_token %}
     <button type="submit">ثبت سفارش</button>

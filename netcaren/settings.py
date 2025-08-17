@@ -87,7 +87,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': config('POSTGRES_DB', default='netcaren_db'),
         'USER': config('POSTGRES_USER', default='netcaren_user'),
-        'PASSWORD': config('POSTGRES_PASSWORD', default='secret123'),
+        'PASSWORD': config('POSTGRES_PASSWORD', default='secrect123'),
         'HOST': config('POSTGRES_HOST', default='127.0.0.1'),
         'PORT': config('POSTGRES_PORT', default='5432'),
     }
